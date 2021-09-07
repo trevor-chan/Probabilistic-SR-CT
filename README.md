@@ -1,2 +1,1 @@
 # diffusion
-diffusion model testing
