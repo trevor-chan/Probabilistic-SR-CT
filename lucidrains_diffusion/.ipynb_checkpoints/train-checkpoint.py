@@ -13,22 +13,23 @@ model = Unet(
 diffusion = GaussianDiffusion(
     model,
     timesteps = 2000,   # number of steps
-    loss_type = 'l1'    # L1 or L2
+    loss_type = 'l1+l2'    # L1 or L2
 ).cuda()
 
-lr = 1e-5
+lr = 2e-5  #1e-5
 steps = 5000
 
 trainer = Trainer(
     diffusion,
-    '../cats/',
-    image_size = 256,
-    train_batch_size = 12,
+    '../../../datasets/CelebA_HQM',
+    image_size = 256,   #256,
+    train_batch_size = 16,
     train_lr = lr,
     train_num_steps = 500000,         # total training steps
     gradient_accumulate_every = 2,    # gradient accumulation steps
     ema_decay = 0.998,                # exponential moving average decay
-    fp16 = False                       # turn on mixed precision training with apex
+    fp16 = False,                       # turn on mixed precision training with apex
+    results_folder = 'results',
 )
 
 trainer.load(20000) # <step> = # in the name

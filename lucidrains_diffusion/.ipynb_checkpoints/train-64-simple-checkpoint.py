@@ -16,7 +16,7 @@ lr = 2e-5
 
 trainer = Trainer(
     diffusion,
-    '../../cats/',
+    '../../../datasets/CelebA_HQM',
     image_size = 64,
     train_batch_size = 32,
     train_lr = lr,

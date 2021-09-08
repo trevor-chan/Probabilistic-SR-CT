@@ -501,7 +501,7 @@ class Trainer(object):
             self.ds = SimpleDataset(folder, image_size)
         else:
             self.ds = Dataset(folder, image_size)
-        self.dl = cycle(data.DataLoader(self.ds, batch_size = train_batch_size, shuffle=True, pin_memory=True))
+        self.dl = cycle(data.DataLoader(self.ds, batch_size = train_batch_size, shuffle=True, pin_memory=True, num_workers=16)) #----------------------------------------------------------------------------------------------------------------changed numworkers
         self.opt = Adam(diffusion_model.parameters(), lr=train_lr)
 
         self.results_folder = Path(results_folder)
@@ -535,6 +535,7 @@ class Trainer(object):
         torch.save(data, str(self.results_folder / f'model-{milestone}.pt'))
 
     def load(self, checkpoint):
+        checkpoint = 'model-'+str(checkpoint)+'.pt'
         print("Loading from " + str(self.results_folder / checkpoint))
         data = torch.load(str(self.results_folder / checkpoint))
 
