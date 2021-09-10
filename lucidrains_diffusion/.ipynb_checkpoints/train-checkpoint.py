@@ -22,17 +22,17 @@ steps = 5000
 trainer = Trainer(
     diffusion,
     '../../../datasets/CelebA_HQM',
-    image_size = 256,   #256,
+    image_size = 128,   #256,
     train_batch_size = 16,
     train_lr = lr,
     train_num_steps = 500000,         # total training steps
     gradient_accumulate_every = 2,    # gradient accumulation steps
     ema_decay = 0.998,                # exponential moving average decay
     fp16 = False,                       # turn on mixed precision training with apex
-    results_folder = 'results',
+    results_folder = 'results_128',
 )
 
-trainer.load(20000) # <step> = # in the name
+#trainer.load(20000) # <step> = # in the name
 
 trainer.train()
 
