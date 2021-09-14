@@ -24,7 +24,8 @@ except:
 
 # constants
 
-SAMPLE_EVERY = 2500
+# SAMPLE_EVERY = 2500
+SAMPLE_EVERY = 20
 SAVE_EVERY = 5000
 UPDATE_EMA_EVERY = 10
 EXTS = ['jpg', 'jpeg', 'png']
@@ -182,7 +183,7 @@ class Unet(nn.Module):
     def __init__(self, dim, out_dim = None, dim_mults=(1, 2, 4, 8), groups = 8,):
         super().__init__()
         
-        dims = [3, *map(lambda m: dim * m, dim_mults)]#channel dim
+        dims = [6, *map(lambda m: dim * m, dim_mults)]#channel dim {}
         in_out = list(zip(dims[:-1], dims[1:]))
 
         self.time_pos_emb = SinusoidalPosEmb(dim)
@@ -279,7 +280,7 @@ def cosine_beta_schedule(timesteps, s = 0.008):
     return np.clip(betas, a_min = 0, a_max = 0.999)
 
 class GaussianDiffusion(nn.Module):
-    def __init__(self, denoise_fn, timesteps=1000, loss_type='l1', betas = None): #Take in prior as an arg here ----------------------------------------{}
+    def __init__(self, denoise_fn, timesteps=1000, loss_type='l1', betas = None):
         super().__init__()
         self.denoise_fn = denoise_fn
 
@@ -342,18 +343,31 @@ class GaussianDiffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, t, clip_denoised: bool):
-        x_recon = self.predict_start_from_noise(x, t=t, noise=self.denoise_fn(x, t))
+        x_recon = self.predict_start_from_noise(x[:,0:3,:,:], t=t, noise=self.denoise_fn(x, t))
+        
+#         print('x_recon')
+#         print(x_recon.shape)
 
         if clip_denoised:
             x_recon.clamp_(-1., 1.)
 
-        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start=x_recon, x_t=x, t=t)
+        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start=x_recon, x_t=x[:,0:3,:,:], t=t)
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample(self, x, t, clip_denoised=True, repeat_noise=False, ground_truth=None, mask=None):
+    def p_sample(self, x, t, clip_denoised=True, repeat_noise=False, ground_truth=None, mask=None, prior=None):
         b, *_, device = *x.shape, x.device
         noise = noise_like(x.shape, device, repeat_noise)
+        
+        #----------------Concat precalculated prior------{} 
+        if prior is not None:    
+#             print('x')
+#             print(x.shape)
+#             print('prior')
+#             print(prior.shape)
+            x = torch.cat((x,prior),dim=1)
+#             print(x.shape)
+        
         if mask is not None:
             x[mask] = (ground_truth + 0 * (extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape)) * noise)[mask]
         model_mean, model_variance, model_log_variance = self.p_mean_variance(x=x, t=t, clip_denoised=clip_denoised)
@@ -363,26 +377,30 @@ class GaussianDiffusion(nn.Module):
         return img
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, noise, mask=None):
+    def p_sample_loop(self, shape, noise, mask=None, prior=None):
         device = self.betas.device
         output_list = []
         
         b = shape[0]
         img = torch.randn(shape, device=device)
+        #Calculate prior here
         if noise is not None:
             assert noise.shape == shape
             img[mask] = noise[mask]
             output_list.append(noise)
 
         for i in tqdm(reversed(range(0, self.num_timesteps)), desc='sampling loop time step', total=self.num_timesteps):
-            img = self.p_sample(img, torch.full((b,), i, device=device, dtype=torch.long), ground_truth=noise, mask=mask)
+            img = self.p_sample(img, torch.full((b,), i, device=device, dtype=torch.long), 
+                                ground_truth=noise, mask=mask, prior=prior)
             if i in [self.num_timesteps * x // 8 for x in range(0, 8)]:
                 output_list.append(img)
         return torch.cat(output_list, dim=0)
 
     @torch.no_grad()
-    def sample(self, image_size, batch_size = 16, noise=None, mask=None):
-        x = self.p_sample_loop((batch_size, 3, image_size, image_size), noise, mask)
+    def sample(self, image_size, batch_size = 16, noise=None, mask=None, prior=None):
+#         print('prior in sample')
+#         print(prior.shape)
+        x = self.p_sample_loop((batch_size, 3, image_size, image_size), noise, mask, prior=prior)#-----channel {}
         return x
 
     @torch.no_grad()
@@ -414,7 +432,16 @@ class GaussianDiffusion(nn.Module):
         noise = default(noise, lambda: torch.randn_like(x_start))
 
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
-        x_recon = self.denoise_fn(x_noisy, t)
+        #-----------Calculate and concatenate downsampled prior here-------------{}
+        x_prior = nn.functional.interpolate(x_start,scale_factor=0.25,mode = 'bilinear', 
+                                            recompute_scale_factor=False, align_corners=False)
+        x_prior = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)(x_prior)
+        #print(x_prior.shape)
+        #print(x_noisy.shape)
+        x_noisy = torch.cat((x_prior,x_noisy),dim=1)
+        #print(x_noisy.shape)
+
+        x_recon = self.denoise_fn(x_noisy, t) #-----calculate reconstructed image from noisy+prior
 
         if self.loss_type == 'l1':
             loss = (noise - x_recon).abs().mean()
@@ -476,6 +503,7 @@ class Trainer(object):
         diffusion_model,
         folder,
         *,
+        sample_folder=None,
         ema_decay = 0.997,
         image_size = 128,
         train_batch_size = 32,
@@ -502,8 +530,16 @@ class Trainer(object):
             self.ds = SimpleDataset(folder, image_size)
         else:
             self.ds = Dataset(folder, image_size)
+            if sample_folder is not None:
+                self.sampleds = Dataset(sample_folder, image_size)
             
-        self.dl = cycle(data.DataLoader(self.ds, batch_size = train_batch_size, shuffle=True, pin_memory=True, num_workers=train_batch_size))
+        self.dl = cycle(data.DataLoader(self.ds, batch_size = train_batch_size, 
+                                        shuffle=True, pin_memory=True, 
+                                        num_workers= min(train_batch_size, 32)))
+        if sample_folder is not None:
+            self.sampledl = cycle(data.DataLoader(self.sampleds, batch_size = 8, 
+                                        shuffle=False, pin_memory=True, 
+                                        num_workers= 8))
         self.opt = Adam(diffusion_model.parameters(), lr=train_lr)
 
         self.results_folder = Path(results_folder)
@@ -551,15 +587,10 @@ class Trainer(object):
         for step in tqdm(range(self.step, self.train_num_steps + 1)):
             self.step = step
             for i in range(self.gradient_accumulate_every):
-                data = next(self.dl).cuda()                     
-                #------------------create downsampled prior at 1/4 resolution, append to data along channel axis----------------------
-                '''assert self.image_size%4==0
-                self.prior = torch.resize(self.dl, int(self.image_size/4))
-                self.prior = nn.Upsample(scale_factor=4, mode='bilinear')
-                data = torch.cat((data,prior),dim=1)''' #Probably not good to concat here afterall...
-                
+                data = next(self.dl).cuda()
+
                 noise=None
-                loss = self.model(data, noise) # Probably a good idea to feed in the prior as arg here
+                loss = self.model(data, noise)
                 if self.step % 10 == 0:
                     tqdm.write(f'{self.step}: {loss.item()}')
                 backwards(loss / self.gradient_accumulate_every, self.opt)
@@ -576,11 +607,13 @@ class Trainer(object):
             if self.step != 0 and self.step % SAMPLE_EVERY == 0:
                 batches = num_to_groups(8, self.batch_size)
                 
-                all_images_list = list(map(lambda n: self.model.sample(self.image_size, batch_size=n), batches))
+                all_images_list = list(map(lambda n: self.model.sample(self.image_size, batch_size=n, 
+                                                                       prior = next(self.sampledl).cuda()), batches))
                 all_images = torch.cat(all_images_list, dim=0)
                 utils.save_image(all_images, str(self.results_folder / f'raw-{self.step}.png'), nrow=8, normalize=True, scale_each=True)
                 
-                all_images_list = list(map(lambda n: self.ema_model.sample(self.image_size, batch_size=n), batches))
+                all_images_list = list(map(lambda n: self.ema_model.sample(self.image_size, batch_size=n,
+                                                                           prior = next(self.sampledl).cuda()), batches))
                 all_images = torch.cat(all_images_list, dim=0)
                 utils.save_image(all_images, str(self.results_folder / f'ema-{self.step}.png'), nrow=8, normalize=True, scale_each=True)
 
