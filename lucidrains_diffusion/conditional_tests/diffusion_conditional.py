@@ -24,8 +24,8 @@ except:
 
 # constants
 
-# SAMPLE_EVERY = 2500
-SAMPLE_EVERY = 20
+SAMPLE_EVERY = 2500
+# SAMPLE_EVERY = 20
 SAVE_EVERY = 5000
 UPDATE_EMA_EVERY = 10
 EXTS = ['jpg', 'jpeg', 'png']
