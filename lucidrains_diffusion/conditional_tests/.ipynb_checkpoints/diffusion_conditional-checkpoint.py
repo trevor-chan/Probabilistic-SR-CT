@@ -361,12 +361,7 @@ class GaussianDiffusion(nn.Module):
         
         #----------------Concat precalculated prior------{} 
         if prior is not None:    
-#             print('x')
-#             print(x.shape)
-#             print('prior')
-#             print(prior.shape)
             x = torch.cat((x,prior),dim=1)
-#             print(x.shape)
         
         if mask is not None:
             x[mask] = (ground_truth + 0 * (extract(self.sqrt_one_minus_alphas_cumprod, t, x.shape)) * noise)[mask]
@@ -383,7 +378,6 @@ class GaussianDiffusion(nn.Module):
         
         b = shape[0]
         img = torch.randn(shape, device=device)
-        #Calculate prior here
         if noise is not None:
             assert noise.shape == shape
             img[mask] = noise[mask]
@@ -397,9 +391,7 @@ class GaussianDiffusion(nn.Module):
         return torch.cat(output_list, dim=0)
 
     @torch.no_grad()
-    def sample(self, image_size, batch_size = 16, noise=None, mask=None, prior=None):
-#         print('prior in sample')
-#         print(prior.shape)
+    def sample(self, image_size, batch_size = 16, noise=None, mask=None, prior=None):        
         x = self.p_sample_loop((batch_size, 3, image_size, image_size), noise, mask, prior=prior)#-----channel {}
         return x
 
@@ -427,22 +419,31 @@ class GaussianDiffusion(nn.Module):
             extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise
         )
 
-    def p_losses(self, x_start, t, noise = None):
+    def p_losses(self, x_start, t, noise = None, prior_func = None):
         b, c, h, w = x_start.shape
         noise = default(noise, lambda: torch.randn_like(x_start))
 
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         #-----------Calculate and concatenate downsampled prior here-------------{}
-        x_prior = nn.functional.interpolate(x_start,scale_factor=0.25,mode = 'bilinear', 
-                                            recompute_scale_factor=False, align_corners=False)
-        x_prior = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)(x_prior)
-        #print(x_prior.shape)
-        #print(x_noisy.shape)
+        
+#          utils.save_image(noise, str('results_conditional_small/noise.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+        
+#         utils.save_image(x_noisy, str('results_conditional_small/x_noisy.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+        
+        
+        x_prior = prior_func(x_start)
+        
+#         utils.save_image(x_prior, str('results_conditional_small/x_prior.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+        
         x_noisy = torch.cat((x_prior,x_noisy),dim=1)
-        #print(x_noisy.shape)
 
         x_recon = self.denoise_fn(x_noisy, t) #-----calculate reconstructed image from noisy+prior
 
+#         xout = x_noisy[:,0:3,:,:]-x_recon
+#         utils.save_image(xout, str('results_conditional_small/xout.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+
+
+        
         if self.loss_type == 'l1':
             loss = (noise - x_recon).abs().mean()
         elif self.loss_type == 'l2':
@@ -580,6 +581,12 @@ class Trainer(object):
         self.step = data['step']
         self.model.load_state_dict(data['model'])
         self.ema_model.load_state_dict(data['ema'])
+        
+    def downsample_prior(self, prior):
+        prior = nn.functional.interpolate(prior,scale_factor=0.25,mode = 'bilinear', 
+                                            recompute_scale_factor=False, align_corners=False)
+        prior = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)(prior)
+        return prior
 
     def train(self):
         backwards = partial(loss_backwards, self.fp16)
@@ -590,7 +597,7 @@ class Trainer(object):
                 data = next(self.dl).cuda()
 
                 noise=None
-                loss = self.model(data, noise)
+                loss = self.model(data, noise, self.downsample_prior)
                 if self.step % 10 == 0:
                     tqdm.write(f'{self.step}: {loss.item()}')
                 backwards(loss / self.gradient_accumulate_every, self.opt)
@@ -608,12 +615,12 @@ class Trainer(object):
                 batches = num_to_groups(8, self.batch_size)
                 
                 all_images_list = list(map(lambda n: self.model.sample(self.image_size, batch_size=n, 
-                                                                       prior = next(self.sampledl).cuda()), batches))
+                                    prior = self.downsample_prior(next(self.sampledl)).cuda()), batches))
                 all_images = torch.cat(all_images_list, dim=0)
                 utils.save_image(all_images, str(self.results_folder / f'raw-{self.step}.png'), nrow=8, normalize=True, scale_each=True)
                 
                 all_images_list = list(map(lambda n: self.ema_model.sample(self.image_size, batch_size=n,
-                                                                           prior = next(self.sampledl).cuda()), batches))
+                                    prior = self.downsample_prior(next(self.sampledl)).cuda()), batches))
                 all_images = torch.cat(all_images_list, dim=0)
                 utils.save_image(all_images, str(self.results_folder / f'ema-{self.step}.png'), nrow=8, normalize=True, scale_each=True)
 
