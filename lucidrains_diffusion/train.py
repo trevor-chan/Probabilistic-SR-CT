@@ -11,7 +11,7 @@ diffusion = GaussianDiffusion(
     loss_type = 'l1+l2'    # L1 or L2
 ).cuda()
 
-lr = 4e-5  #1e-5
+lr = 3e-5  #1e-5
 
 trainer = Trainer(
     diffusion,

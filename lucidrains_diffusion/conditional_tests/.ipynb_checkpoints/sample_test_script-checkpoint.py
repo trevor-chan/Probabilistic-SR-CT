@@ -23,10 +23,10 @@ trainer = Trainer(
     gradient_accumulate_every = 1,    # gradient accumulation steps
     ema_decay = 0.998,                # exponential moving average decay
     fp16 = False,                       # turn on mixed precision training with apex
-    results_folder = 'results_conditional_small',
+    results_folder = 'results_conditional_small_TESTING',
     sample_folder = '../../../../datasets/sampleCelebA',
 )
 
-#trainer.load(25000) # <step> = # in the name
+#trainer.load(55000) # <step> = # in the name
 
 trainer.train()

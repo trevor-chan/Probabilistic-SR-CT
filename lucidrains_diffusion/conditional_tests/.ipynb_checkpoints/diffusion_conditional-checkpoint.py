@@ -30,6 +30,7 @@ SAVE_EVERY = 5000
 UPDATE_EMA_EVERY = 10
 EXTS = ['jpg', 'jpeg', 'png']
 
+
 # helpers functions
 
 def exists(x):
