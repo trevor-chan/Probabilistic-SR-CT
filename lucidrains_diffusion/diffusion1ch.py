@@ -27,7 +27,7 @@ except:
 SAMPLE_EVERY = 2500
 SAVE_EVERY = 5000
 UPDATE_EMA_EVERY = 10
-EXTS = ['jpg', 'jpeg', 'png']
+EXTS = ['tif']
 
 # helpers functions
 
@@ -133,7 +133,7 @@ class Block(nn.Module):
     def __init__(self, dim, dim_out, groups = 8):
         super().__init__()
         self.block = nn.Sequential(
-            nn.Conv2d(dim, dim_out, 1, padding=1),#-------------------------------------------------------------------------
+            nn.Conv2d(dim, dim_out, 3, padding=1),
             nn.GroupNorm(groups, dim_out),
             Mish()
         )
@@ -229,7 +229,7 @@ class Unet(nn.Module):
     def forward(self, x, time):
         t = self.time_pos_emb(time)
         t = self.mlp(t)
-
+        
         h = []
 
         for resnet, resnet2, attn, downsample in self.downs:
@@ -478,7 +478,7 @@ class Trainer(object):
         folder,
         *,
         ema_decay = 0.997,
-        image_size = 128,
+        image_size = 256,
         train_batch_size = 32,
         train_lr = 2e-5,
         train_num_steps = 100000,

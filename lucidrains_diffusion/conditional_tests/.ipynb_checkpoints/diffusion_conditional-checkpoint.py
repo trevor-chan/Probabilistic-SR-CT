@@ -24,9 +24,10 @@ except:
 
 # constants
 
-SAMPLE_EVERY = 2500
-# SAMPLE_EVERY = 20
-SAVE_EVERY = 5000
+# SAMPLE_EVERY = 2500
+SAMPLE_EVERY = 500
+# SAVE_EVERY = 5000
+SAVE_EVERY = 500
 UPDATE_EMA_EVERY = 10
 EXTS = ['jpg', 'jpeg', 'png']
 
@@ -181,11 +182,13 @@ class LinearAttention(nn.Module):
 # model
 
 class Unet(nn.Module):
-    def __init__(self, dim, out_dim = None, dim_mults=(1, 2, 4, 8), groups = 8,):
+    def __init__(self, dim, dim_mults=(1, 2, 4, 8), groups = 8, in_channels=6, out_channels=3):
         super().__init__()
         
-        dims = [6, *map(lambda m: dim * m, dim_mults)]#channel dim {}
+        dims = [in_channels, *map(lambda m: dim * m, dim_mults)]#channel dim {}
         in_out = list(zip(dims[:-1], dims[1:]))
+        
+        #print(in_out)# check the outdimensions of the Unet
 
         self.time_pos_emb = SinusoidalPosEmb(dim)
         self.mlp = nn.Sequential(
@@ -223,10 +226,9 @@ class Unet(nn.Module):
                 Upsample(dim_in) if not is_last else nn.Identity()
             ]))
 
-        out_dim = default(out_dim, 3)
         self.final_conv = nn.Sequential(
             Block(dim, dim),
-            nn.Conv2d(dim, out_dim, 1)
+            nn.Conv2d(dim, out_channels, 1)
         )
 
     def forward(self, x, time):
@@ -346,6 +348,10 @@ class GaussianDiffusion(nn.Module):
     def p_mean_variance(self, x, t, clip_denoised: bool):
         x_recon = self.predict_start_from_noise(x[:,0:3,:,:], t=t, noise=self.denoise_fn(x, t))
         
+        utils.save_image(x[:,0:3,:,:], str('results_conditional_small_TESTING/x_0-3ch.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+        utils.save_image(x[:,3:6,:,:], str('results_conditional_small_TESTING/x_3-5ch.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+        utils.save_image(x_recon, str('results_conditional_small_TESTING/x_recon.png'), nrow=8, ncol=8, normalize=True, scale_each=True)
+
 #         print('x_recon')
 #         print(x_recon.shape)
 

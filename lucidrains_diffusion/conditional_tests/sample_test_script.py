@@ -7,7 +7,7 @@ model = Unet(
 
 diffusion = GaussianDiffusion(
     model,
-    timesteps = 4000,   # number of steps
+    timesteps = 2000,   # number of steps
     loss_type = 'l1+l2'    # L1 or L2
 ).cuda()
 
@@ -27,6 +27,6 @@ trainer = Trainer(
     sample_folder = '../../../../datasets/sampleCelebA',
 )
 
-#trainer.load(55000) # <step> = # in the name
+trainer.load(3500) # <step> = # in the name
 
 trainer.train()
