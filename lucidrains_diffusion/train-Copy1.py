@@ -16,14 +16,14 @@ lr = 2e-5  #1e-5
 trainer = Trainer(
     diffusion,
     '../../../datasets/femurDCMs',
-    image_size = 256,   #256,
-    train_batch_size = 16,
+    image_size = 512,   #256,
+    train_batch_size = 4,
     train_lr = lr,
     train_num_steps = 500000,         # total training steps
     gradient_accumulate_every = 2,    # gradient accumulation steps  #2
     ema_decay = 0.998,                # exponential moving average decay
     fp16 = False,                       # turn on mixed precision training with apex
-    results_folder = 'results_CT',
+    results_folder = 'results_CT_512',
 )
 
 # trainer.load(250000) # <step> = # in the name
