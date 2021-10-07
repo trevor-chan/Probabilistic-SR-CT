@@ -26,7 +26,7 @@ trainer = Trainer(
     results_folder = 'results_128',
 )
 
-trainer.load(120000) # <step> = # in the name
+trainer.load(220000) # <step> = # in the name
 
 trainer.train()
 
