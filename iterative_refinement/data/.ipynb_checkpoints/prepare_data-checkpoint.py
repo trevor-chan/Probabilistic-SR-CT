@@ -36,18 +36,20 @@ def resize_multiple(img, sizes=(16, 128), resample=Image.BICUBIC, lmdb_save=Fals
     return [lr_img, hr_img, sr_img]
 
 
-def resize_worker(img_file, sizes, resample, lmdb_save=False):
+def resize_worker(img_file, sizes, resample, lmdb_save=False, channel='RGB'):
     img = Image.open(img_file)
-    img = img.convert('RGB')
+    img = img.convert(channel)
     out = resize_multiple(
         img, sizes=sizes, resample=resample, lmdb_save=lmdb_save)
 
     return img_file.name.split('.')[0], out
 
 
-def prepare(img_path, out_path, n_worker, sizes=(16, 128), resample=Image.BICUBIC, lmdb_save=False):
+def prepare(img_path, out_path, n_worker, sizes=(16, 128), resample=Image.BICUBIC, lmdb_save=False, channel='RGB'):
     resize_fn = partial(resize_worker, sizes=sizes,
-                        resample=resample, lmdb_save=lmdb_save)
+                        resample=resample, 
+                        lmdb_save=lmdb_save,
+                        channel=channel,)
     files = [p for p in Path(
         '{}'.format(img_path)).glob(f'**/*')]
 
@@ -120,6 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--resample', type=str, default='bicubic')
     # default save in png format
     parser.add_argument('--lmdb', '-l', action='store_true')
+    parser.add_argument('--channel', default = 'RGB')
 
     args = parser.parse_args()
 
@@ -129,4 +132,4 @@ if __name__ == '__main__':
 
     args.out = '{}_{}_{}'.format(args.out, sizes[0], sizes[1])
     prepare(args.path, args.out, args.n_worker,
-            sizes=sizes, resample=resample, lmdb_save=args.lmdb)
+            sizes=sizes, resample=resample, lmdb_save=args.lmdb, channel=args.channel)
