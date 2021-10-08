@@ -5,3 +5,6 @@
 *.pth
 __pycache__/
 */.ipynb_checkpoints
+*.DCM
+*.PNG
+*.ipnyb_checkpoints
