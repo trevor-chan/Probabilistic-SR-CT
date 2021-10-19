@@ -110,11 +110,19 @@ if __name__ == "__main__":
                             lr_img, '{}/{}_{}_lr.png'.format(result_path, current_step, idx))
                         Metrics.save_img(
                             fake_img, '{}/{}_{}_inf.png'.format(result_path, current_step, idx))
-                        tb_logger.add_image(
-                            'Iter_{}'.format(current_step),
-                            np.transpose(np.concatenate(
-                                (fake_img, sr_img, hr_img), axis=1), [2, 0, 1]),
-                            idx)
+                        if len(sr_img.shape) == 3:# this should only activate if the image is 3 channel, if one channel image, no need to transpose
+                            tb_logger.add_image(
+                                'Iter_{}'.format(current_step),
+                                np.transpose(np.concatenate(
+                                    (fake_img, sr_img, hr_img), axis=1), [2, 0, 1]),
+                                idx)
+                        else:
+                            tb_logger.add_image(
+                                'Iter_{}'.format(current_step),
+                                np.tile(np.concatenate(
+                                    (fake_img, sr_img, hr_img), axis=1), (3, 1, 1)),
+                                idx)
+                            
                         avg_psnr += Metrics.calculate_psnr(
                             sr_img, hr_img)
 

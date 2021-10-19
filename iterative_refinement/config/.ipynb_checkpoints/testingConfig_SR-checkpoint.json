@@ -17,11 +17,11 @@
         "train": {
             "name": "FFHQ",
             "mode": "HR", // whether need LR img
-            "dataroot": "data/datasets/femurPNGs/femur_LH_64_256",
+            "dataroot": "data/datasets/femurPNGs/train_femur_LH_64_256",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 64, // low resolution need to super_resolution
             "r_resolution": 256, // high resolution
-            "batch_size": 4,
+            "batch_size": 16,
             "num_workers": 16,
             "use_shuffle": true,
             "data_len": -1, // -1 represents all data used in train
@@ -30,12 +30,13 @@
         "val": {
             "name": "CelebaHQ",
             "mode": "LRHR",
-            "dataroot": "data/datasets/femurPNGs/femur_LH_64_256",
+            "dataroot": "data/datasets/femurPNGs/val_femur_LH_64_256",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 64,
             "r_resolution": 256,
-            "data_len": 50, // data length in validation 
-            "chtype": "L"
+            "data_len": -1, // data length in validation 
+            "chtype": "L",
+            "use_shuffle": true
         }
     },
     "model": {
@@ -48,25 +49,26 @@
             "channel_multiplier": [
                 1,
                 2,
+                2,
                 4,
-                8,
+                4,
                 8
             ],
             "attn_res": [
                 16
             ],
             "res_blocks": 2,
-            "dropout": 0.1 //dropout default set to 0.2
+            "dropout": 0 //dropout default set to 0.2
         },
         "beta_schedule": { // use munual beta_schedule for acceleration
             "train": {
-                "schedule": "linear",
+                "schedule": "cosine",
                 "n_timestep": 2000,
                 "linear_start": 1e-6,
                 "linear_end": 1e-2
             },
             "val": {
-                "schedule": "linear",
+                "schedule": "cosine",
                 "n_timestep": 2000,
                 "linear_start": 1e-6,
                 "linear_end": 1e-2

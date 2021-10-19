@@ -877,3 +877,5 @@
 21-10-08 19:21:41.183 - INFO: Model [DDPM] is created.
 21-10-08 19:21:41.183 - INFO: Initial Model Finished
 21-10-08 19:23:01.314 - INFO: <epoch:  1, iter:     200> l_pix: 7.7922e-02 
+21-10-08 19:24:24.426 - INFO: <epoch:  1, iter:     400> l_pix: 1.0863e-01 
+21-10-08 19:25:58.628 - INFO: <epoch:  1, iter:     600> l_pix: 6.3548e-02 
