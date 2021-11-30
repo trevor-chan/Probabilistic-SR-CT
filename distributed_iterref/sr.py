@@ -36,7 +36,6 @@ if __name__ == "__main__":
     tb_logger = SummaryWriter(log_dir=opt['path']['tb_logger'])
 
     # dataset
-        
     for phase, dataset_opt in opt['datasets'].items():
         if phase == 'train' and args.phase != 'val':
             train_set = Data.create_dataset(dataset_opt, phase)
@@ -75,9 +74,11 @@ if __name__ == "__main__":
                 diffusion.feed_data(train_data)
 #                 diffusion.optimize_parameters()
                 #run with accumulated gradients, every n steps:
-                diffusion.optimize_accumulated_gradients(((current_step+1)%opt['train']['accumulate_every']==0), opt['train']['accumulate_every'])
+                diffusion.optimize_accumulated_gradients(self, acc = ((current_step+1)%opt['train']['accumulate_every']==0), opt['train']['accumulate_every'])
                 # log
-                                
+                
+                logger.info('testing testing testing {}'.format(current_step))
+                
                 if current_step % opt['train']['print_freq'] == 0:
                     logs = diffusion.get_current_log()
                     message = '<epoch:{:3d}, iter:{:8,d}> '.format(
@@ -86,6 +87,11 @@ if __name__ == "__main__":
                         message += '{:s}: {:.4e} '.format(k, v)
                         tb_logger.add_scalar(k, v, current_step)
                     logger.info(message)
+                
+                #-------------------------------------------------------------------
+                print("gradient check")
+                #-------------------------------------------------------------------
+
                 
                 # validation
                 if current_step % opt['train']['val_freq'] == 0:

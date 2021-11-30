@@ -67,7 +67,7 @@ class GaussianDiffusion(nn.Module):
         denoise_fn,
         image_size,
         channels=3,
-        loss_type='l1',
+        loss_type='l2',
         conditional=True,
         schedule_opt=None
     ):
@@ -174,9 +174,9 @@ class GaussianDiffusion(nn.Module):
         return model_mean + noise * (0.5 * model_log_variance).exp()
 
     @torch.no_grad()
-    def p_sample_loop(self, x_in, continous=False):
+    def p_sample_loop(self, x_in, continuous=False):
         device = self.betas.device
-        sample_inter = (1 | (self.num_timesteps//10))
+        sample_inter = (1 | (self.num_timesteps//5))
         if not self.conditional:
             shape = x_in
             img = torch.randn(shape, device=device)
@@ -194,20 +194,20 @@ class GaussianDiffusion(nn.Module):
                 img = self.p_sample(img, i, condition_x=x)
                 if i % sample_inter == 0:
                     ret_img = torch.cat([ret_img, img], dim=0)
-        if continous:
+        if continuous:
             return ret_img
         else:
             return ret_img[-1]
 
     @torch.no_grad()
-    def sample(self, batch_size=1, continous=False):
+    def sample(self, batch_size=1, continuous=False):
         image_size = self.image_size
         channels = self.channels
-        return self.p_sample_loop((batch_size, channels, image_size, image_size), continous)
+        return self.p_sample_loop((batch_size, channels, image_size, image_size), continuous)
 
     @torch.no_grad()
-    def super_resolution(self, x_in, continous=False):
-        return self.p_sample_loop(x_in, continous)
+    def super_resolution(self, x_in, continuous=False):
+        return self.p_sample_loop(x_in, continuous)
 
     def q_sample(self, x_start, continuous_sqrt_alpha_cumprod, noise=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
@@ -232,7 +232,10 @@ class GaussianDiffusion(nn.Module):
         continuous_sqrt_alpha_cumprod = continuous_sqrt_alpha_cumprod.view(
             b, -1)
 
-        noise = default(noise, lambda: torch.randn_like(x_start))
+        noise = default(noise, lambda: torch.randn_like(x_start))#----------------------------------------------------------------------------------------------------------------------
+        '''
+        # Rician noise ?
+        '''
         x_noisy = self.q_sample(
             x_start=x_start, continuous_sqrt_alpha_cumprod=continuous_sqrt_alpha_cumprod.view(-1, 1, 1, 1), noise=noise)
 

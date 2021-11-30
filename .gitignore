@@ -10,3 +10,6 @@ __pycache__/
 *.ipnyb_checkpoints
 *.log
 *.out.*
+*.tif
+*.tiff
+*.lsni2
