@@ -8,6 +8,7 @@ import core.metrics as Metrics
 from tensorboardX import SummaryWriter
 import os
 import numpy as np
+import random
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -98,6 +99,8 @@ if __name__ == "__main__":
                     diffusion.set_new_noise_schedule(
                         opt['model']['beta_schedule']['val'], schedule_phase='val')
                     for _,  val_data in enumerate(val_loader):
+                        if random.random() < 0.003: # randomly sample about 21 images from the val dataset, calculate val stats on these
+                            continue
                         idx += 1
                         diffusion.feed_data(val_data)
                         diffusion.test(continous=False)

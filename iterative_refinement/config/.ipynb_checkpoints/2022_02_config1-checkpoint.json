@@ -1,5 +1,5 @@
 {
-    "name": "220107_test",
+    "name": "220204_test",
     "phase": "train", // train or val
     "gpu_ids": [
         0
@@ -9,19 +9,19 @@
         "tb_logger": "tb_logger",
         "results": "results",
         "checkpoint": "checkpoint",
-        //"resume_state": null
-        "resume_state": "experiments/sr_ffhq_211123_090353/checkpoint/I780000_E149"
+        "resume_state": null
+        //"resume_state": "experiments/sr_ffhq_211123_090353/checkpoint/I780000_E149"
     },
     "datasets": {
         "train": {
             "name": "trainer",
             "mode": "HR", // whether need LR img
-            "dataroot": "data/datasets/femurPNGs/train_128_384",
+            "dataroot": "data/datasets/all_pngs/train_128_384",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128, // low resolution need to super_resolution
             "r_resolution": 384, // high resolution
             "batch_size": 6,
-            "num_workers": 16,
+            "num_workers": 18,
             "use_shuffle": true,
             "data_len": -1, // -1 represents all data used in train
             "chtype": "L" //'L' for grayscale, 'RGB' (default)
@@ -29,12 +29,12 @@
         "val": {
             "name": "val-er",
             "mode": "LRHR",
-            "dataroot": "data/datasets/femurPNGs/val_128_384",
+            "dataroot": "data/datasets/all_pngs/val_128_384",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128,
             "r_resolution": 384,
             "batch_size": 1,
-            "num_workers": 16,
+            "num_workers": 18,
             "data_len": -1,
             "chtype": "L",
             "use_shuffle": false
@@ -56,10 +56,10 @@
                 8
             ],
             "attn_res": [
-                16 //48
+                48
             ],
             "res_blocks": 2,
-            "dropout": 0.1 //dropout default set to 0.2
+            "dropout": 0.2 //dropout default set to 0.2
         },
         "beta_schedule": { // use munual beta_schedule for acceleration
             "train": {

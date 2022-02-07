@@ -1,5 +1,5 @@
 {
-    "name": "sr_ffhq",
+    "name": "220107_test",
     "phase": "train", // train or val
     "gpu_ids": [
         0
@@ -9,15 +9,14 @@
         "tb_logger": "tb_logger",
         "results": "results",
         "checkpoint": "checkpoint",
-        "resume_state": null
-        //"resume_state": "experiments/sr_ffhq_211122_204437/checkpoint/I295000_E57"
-        //"resume_state": "experiments/sr_ffhq_211021_105319/checkpoint/I250000_E154"
+        //"resume_state": null
+        "resume_state": "experiments/sr_ffhq_211123_090353/checkpoint/I780000_E149"
     },
     "datasets": {
         "train": {
             "name": "trainer",
             "mode": "HR", // whether need LR img
-            "dataroot": "data/datasets/femurPNGs/80_20_split/train_128_384",
+            "dataroot": "data/datasets/femurPNGs/train_128_384",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128, // low resolution need to super_resolution
             "r_resolution": 384, // high resolution
@@ -30,13 +29,13 @@
         "val": {
             "name": "val-er",
             "mode": "LRHR",
-            "dataroot": "data/datasets/femurPNGs/80_20_split/val_128_384",
+            "dataroot": "data/datasets/femurPNGs/val_128_384",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128,
             "r_resolution": 384,
             "batch_size": 1,
             "num_workers": 16,
-            "data_len": 5,
+            "data_len": -1,
             "chtype": "L",
             "use_shuffle": false
         }
@@ -57,7 +56,7 @@
                 8
             ],
             "attn_res": [
-                48
+                16 //48
             ],
             "res_blocks": 2,
             "dropout": 0.1 //dropout default set to 0.2

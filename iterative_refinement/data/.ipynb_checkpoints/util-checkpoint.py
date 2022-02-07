@@ -3,6 +3,7 @@ import torch
 import torchvision
 import random
 import numpy as np
+from scipy import ndimage, misc
 
 IMG_EXTENSIONS = ['.jpg', '.JPG', '.jpeg', '.JPEG',
                   '.png', '.PNG', '.ppm', '.PPM', '.bmp', '.BMP']
@@ -24,11 +25,12 @@ def get_paths_from_images(path):
     return sorted(images)
 
 
-def augment(img_list, hflip=True, rot=True, split='val'):
+def augment(img_list, hflip=True, rot=True, split='val', smallrot=True):
     # horizontal flip OR rotate
     hflip = hflip and (split == 'train' and random.random() < 0.5)
     vflip = rot and (split == 'train' and random.random() < 0.5)
     rot90 = rot and (split == 'train' and random.random() < 0.5)
+    rotfine = smallrot and (split == 'train' and random.random() < 0.5)
 
     def _augment(img):
         if hflip:
@@ -37,6 +39,8 @@ def augment(img_list, hflip=True, rot=True, split='val'):
             img = img[::-1, :, :]
         if rot90:
             img = img.transpose(1, 0, 2)
+        if rotfine:
+            img = ndimage.rotate(img, int((random.random()-.5)*20), reshape=False)
         return img
 
     return [_augment(img) for img in img_list]
@@ -73,11 +77,14 @@ def transform2tensor(img, min_max=(0, 1)):
 # implementation by torchvision, detail in https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/issues/14
 totensor = torchvision.transforms.ToTensor()
 hflip = torchvision.transforms.RandomHorizontalFlip()
+rand_rotate = torchvision.transforms.RandomRotation(10, interpolation=torchvision.transforms.InterpolationMode.BILINEAR, 
+                                                    expand=False, center=None, fill=0)
 def transform_augment(img_list, split='val', min_max=(0, 1)):    
     imgs = [totensor(img) for img in img_list]
     if split == 'train':
         imgs = torch.stack(imgs, 0)
         imgs = hflip(imgs)
+        imgs = rand_rotate(imgs)
         imgs = torch.unbind(imgs, dim=0)
     ret_img = [img * (min_max[1] - min_max[0]) + min_max[0] for img in imgs]
     return ret_img

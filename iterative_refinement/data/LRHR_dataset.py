@@ -46,8 +46,8 @@ class LRHRDataset(Dataset):
             if self.data_len <= 0:
                 self.data_len = self.dataset_len
             else:
-                self.data_len = 5
-#                 self.data_len = min(self.data_len, self.dataset_len)
+#                 self.data_len = 5
+                self.data_len = min(self.data_len, self.dataset_len)
         else:
             raise NotImplementedError(
                 'data_type [{:s}] is not recognized.'.format(datatype))
