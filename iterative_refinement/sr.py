@@ -99,8 +99,9 @@ if __name__ == "__main__":
                     diffusion.set_new_noise_schedule(
                         opt['model']['beta_schedule']['val'], schedule_phase='val')
                     for _,  val_data in enumerate(val_loader):
-                        if random.random() < 0.003: # randomly sample about 21 images from the val dataset, calculate val stats on these
+                        if random.random() > 0.003: # randomly sample about 21 images from the val dataset, calculate val stats on these
                             continue
+#                         print('run on {}'.format(indexx)) # remove indexx and replace w/ _ to save after deleting
                         idx += 1
                         diffusion.feed_data(val_data)
                         diffusion.test(continous=False)
