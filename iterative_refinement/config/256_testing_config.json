@@ -1,5 +1,5 @@
 {
-    "name": "220204_test",
+    "name": "256_test",
     "phase": "train", // train or val
     "gpu_ids": [
         0
@@ -9,19 +9,18 @@
         "tb_logger": "tb_logger",
         "results": "results",
         "checkpoint": "checkpoint",
-        //"resume_state": null
+        "resume_state": null
         //"resume_state": "experiments/220204_test_220214_102246/checkpoint/I70000_E7"
-        "resume_state": "experiments/220204_test_220216_113704/checkpoint/I280000_E27"
     },
     "datasets": {
         "train": {
             "name": "trainer",
             "mode": "HR", // whether need LR img
-            "dataroot": "data/datasets/all_pngs/train_128_384",
+            "dataroot": "data/datasets/all_pngs/train_128_256",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128, // low resolution need to super_resolution
-            "r_resolution": 384, // high resolution
-            "batch_size": 6,
+            "r_resolution": 256, // high resolution
+            "batch_size": 12,
             "num_workers": 18,
             "use_shuffle": true,
             "data_len": -1, // -1 represents all data used in train
@@ -30,10 +29,10 @@
         "val": {
             "name": "val-er",
             "mode": "LRHR",
-            "dataroot": "data/datasets/all_pngs/val_128_384",
+            "dataroot": "data/datasets/all_pngs/val_128_256",
             "datatype": "img", //lmdb or img, path of img files
             "l_resolution": 128,
-            "r_resolution": 384,
+            "r_resolution": 256,
             "batch_size": 1,
             "num_workers": 18,
             "data_len": -1,
@@ -60,7 +59,7 @@
                 16
             ],
             "res_blocks": 2,
-            "dropout": 0.1 //dropout default set to 0.2
+            "dropout": 0.2 //dropout default set to 0.2
         },
         "beta_schedule": { // use munual beta_schedule for acceleration
             "train": {
@@ -77,7 +76,7 @@
             }
         },
         "diffusion": {
-            "image_size": 384,
+            "image_size": 256,
             "channels": 1, //sample channel
             "conditional": true // unconditional generation or unconditional generation(super_resolution)
         }
@@ -90,7 +89,7 @@
         "print_freq": 200,
         "optimizer": {
             "type": "adam",
-            "lr": 1e-7
+            "lr": 1e-5
         },
         "ema_scheduler": { // not used now
             "step_start_ema": 5000,

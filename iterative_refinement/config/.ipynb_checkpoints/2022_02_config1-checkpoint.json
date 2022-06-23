@@ -10,7 +10,8 @@
         "results": "results",
         "checkpoint": "checkpoint",
         //"resume_state": null
-        "resume_state": "experiments/220204_test_220214_102246/checkpoint/I70000_E7"
+        //"resume_state": "experiments/220204_test_220214_102246/checkpoint/I70000_E7"
+        "resume_state": "experiments/220204_test_220216_113704/checkpoint/I280000_E27"
     },
     "datasets": {
         "train": {
@@ -89,7 +90,7 @@
         "print_freq": 200,
         "optimizer": {
             "type": "adam",
-            "lr": 1e-6
+            "lr": 1e-7
         },
         "ema_scheduler": { // not used now
             "step_start_ema": 5000,
