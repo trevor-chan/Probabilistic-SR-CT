@@ -17,11 +17,16 @@ Place into ./data/datasets
 ```python
 # Use sr.py to train the super resolution task from scratch
 python sr.py
+
+# Edit the config json file to resume training from a previous checkpoint
+# Use sr.py -c config/<config_file>
+python sr.py
 ```
 
 ### Test/Evaluation
 
 ```python
-# Edit json to add pretrain model path and run the evaluation 
+# run inference and calculate PSNR for a subset of the testing dataset
+# results in ./inference_results
 python test_pretrained.py
 ```
