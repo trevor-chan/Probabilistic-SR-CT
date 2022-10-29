@@ -30,3 +30,5 @@ python sr.py
 # results in ./inference_results
 python test_pretrained.py
 ```
+
+Contact: tjchan@seas.upenn.edu and chamith@pennmedicine.upenn.edu
