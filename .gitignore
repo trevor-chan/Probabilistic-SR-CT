@@ -3,13 +3,6 @@
 *.jpg
 *.pt
 *.pth
-__pycache__/
-*/.ipynb_checkpoints
 *.DCM
 *.PNG
-*.ipnyb_checkpoints
-*.log
-*.out.*
-*.tif
-*.tiff
-*.lsni2
+*.zip
