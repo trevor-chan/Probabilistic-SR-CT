@@ -4,13 +4,13 @@
 
 ### Model Weights
 
-| 85×85 -> 256×256 | Download trained checkpoint from: 
+| 85×85 -> 256×256 | Download trained checkpoint from: https://drive.google.com/drive/folders/1lwyhKn06zOzVBTpAyLLPImUx2TATADs8?usp=sharing
 
 Place into model_checkpoints
 
 ### Data
 
-Download sample train, validation, and testing data from: 
+Download sample train, validation, and testing data from: https://drive.google.com/drive/folders/1lwyhKn06zOzVBTpAyLLPImUx2TATADs8?usp=sharing
 
 Place into data/datasets
 
