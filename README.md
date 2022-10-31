@@ -33,4 +33,13 @@ python sr.py
 python test_pretrained.py
 ```
 
+### Hardware requirements
+
+Current setup is optimized for a Nvidia V100 32GB. For training, reduce the batch size in the json file in ./configs to reduce memory usage.
+
+```
+# Use
+python sr.py -c config/small_model.json
+```
+
 Contact: tjchan@seas.upenn.edu and chamith@pennmedicine.upenn.edu
