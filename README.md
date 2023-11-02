@@ -43,3 +43,18 @@ python sr.py -c config/small_model.json
 ```
 
 Contact: tjchan@seas.upenn.edu and chamith@pennmedicine.upenn.edu
+
+### Citation:
+
+If you use this code, please cite the following work:
+
+@article{chan2023super,
+  title={A Super-Resolution Diffusion Model for Recovering Bone Microstructure from CT Images},
+  author={Chan, Trevor J and Rajapakse, Chamith S},
+  journal={Radiology: Artificial Intelligence},
+  volume={5},
+  number={6},
+  pages={e220251},
+  year={2023},
+  publisher={Radiological Society of North America}
+}
